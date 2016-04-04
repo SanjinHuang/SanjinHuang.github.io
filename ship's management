@@ -1,0 +1,297 @@
+/*
+问题：有一个渡口，每条渡轮一次能装载10辆汽车过江，过江车辆分为客车
+和货车两类，上渡轮有如下规定：
+(1)同类汽车先到先上船
+(2)客车先于货车上船
+(3)每上4辆客车才允许上一辆货车，但若等待的客车不足4辆则用货车填补，
+反过来，若没有货车等待则用客车填补
+(4)装满10辆后自动开船，当等待时间较长时车辆不足10辆也应人为控制发船
+*/
+#include<iostream>
+#include<stdlib.h>
+#include<time.h>
+using namespace std;
+
+typedef int ElemType;
+struct LNode
+{
+	ElemType data;//值域
+	LNode* next;//链接指针域
+};
+struct  LinkQueue
+{
+	LNode* front;//队首指针
+	LNode* rear;//队尾指针
+};
+
+void InitQueue(LinkQueue& HQ)//初始化链表
+{
+	HQ.front=HQ.rear=NULL;//队首队尾置空
+}
+
+void EnQueue(LinkQueue& HQ, ElemType item)//向链表插入元素
+{
+	LNode* newptr = new LNode;//新建节点
+	newptr->data = item;
+	newptr->next = NULL;//新节点指针域置空
+
+	if(HQ.rear == NULL)
+		HQ.front = HQ.rear = newptr;//若链队为空，新节点既是队首也是队尾
+	else
+		HQ.front = HQ.rear->next = newptr;//非空，则新节点链接队尾，并修改队尾指针
+}
+
+ElemType OutQueue(LinkQueue& HQ)//删除元素
+{
+	if(HQ.front == NULL)
+	{
+		cout << "链队为空，无法删除！！" << endl;
+		exit(1);
+	}
+	ElemType temp = HQ.front->data;//暂存队首指针以便返回
+	LNode* p = HQ.front;
+	HQ.front = p->next;
+
+	if(HQ.front == NULL)
+	{
+		HQ.rear = NULL;
+	}
+
+	delete p;
+
+	return temp;
+}
+
+ElemType PeekQueue(LinkQueue& HQ)//读取队首元素
+{
+	if(HQ.front == NULL)
+	{
+		cerr << "链队为空无队首元素！！" << endl;
+		exit(1);
+	}
+
+	return HQ.front->data;
+}
+
+bool EmptyQueue(LinkQueue& HQ)//检查链队是否为空
+{
+	return HQ.front == NULL;
+
+}
+
+void ClearQueue(LinkQueue& HQ)//清空队列
+{
+	LNode* p = HQ.front;
+
+	while(p != NULL)
+	{
+		HQ.front = HQ.front->next;
+		delete p;
+		p = HQ.front;
+	}
+	HQ.rear = NULL;
+}
+
+//输出每次渡轮所载汽车的编号
+void Print(int a[],int n)
+{
+	long t;
+	t = time(0);
+	cout << endl;
+	cout << "渡轮开始起航->" << endl;
+	cout << "本次过江时间:" << ctime(&t) << endl;
+	cout << "本次轮渡所载汽车:";
+	for(int i=0; i<n; i++)
+	{
+		cout << a[i] << endl;
+	}
+	cout << endl;
+}
+
+//输出汽车排队等待情况
+void OutputQueue(const LinkQueue& q1,const LinkQueue& q2)
+{
+	cout << "客车排队情况：";
+	LNode* p = q1.front;
+	if(p == NULL)
+	{
+		cout << "暂时无客车等待！" << endl;
+	}
+	while(p != NULL)
+	{
+		cout << p->data << " ";
+		p = p->next;
+	}
+	cout << endl;
+
+	cout << "货车排队情况：";
+	p = q2.front;
+	if(p == NULL)
+	{
+		cout << "暂时无货车等待！！";
+	}
+	while(p!=NULL)
+	{
+		cout << p->data << " ";
+		p = p->next;
+	}
+	cout << endl;
+}
+
+void main()
+{
+	//q1,q2队列用分别存储待渡江的客车和货车
+    LinkQueue q1,q2;
+	InitQueue(q1);//初始化
+	InitQueue(q2);
+
+	int flag,mark=0;//flag保存用户选择，mark登记轮渡到渡口
+
+	int a[10],n=0;//数组表示汽车号，n记录汽车的个数
+
+	int t1,t2;//t1,t2登记时间
+
+	do{
+		cout << endl << endl;
+       L1:cout << "功能表：" << endl;
+	   cout << "1--车道渡口进行登记" << endl;
+	   cout << "2--渡轮到渡口进行登记" << endl;
+	   cout << "3--汽车上渡轮" << endl;
+	   cout << "4--命令渡轮起航" << endl;
+	   cout << "5--输出当前汽车排队情况" << endl;
+	   cout << "6--结束程序运行" << endl << endl;
+	   cout << "请输入您的选择（1-6）：" << endl;
+	   do{
+		cin >> flag;
+
+		if(flag<1 || flag >6)
+		{
+			cout << "输出功能号错，重输：";
+		}
+	   }while(flag<1 || flag >6);
+
+	   int x,i;
+	   switch(flag)
+	   {
+	   case 1:
+		   cout << "" << endl;
+		   cout << "" << endl;
+		   while(1)
+		   {
+			cin >> x;
+			if(x == -1) break;
+			if(x<100) EnQueue(q1,x);
+			else EnQueue(q2,x);
+		   }
+		   break;
+
+	   case 2:
+		   if(mark == 1)
+		   {
+			cout << "渡轮已在渡口等待，不要重复登记！";
+			break;
+		   }
+		   mark=1;
+		   cout << "渡轮已到渡口，可以上船！" << endl;
+		   n=0;
+		   t1=time(0);
+		   break;
+	   case 3:
+			if(EmptyQueue(q1) && EmptyQueue(q2))
+			{
+				cout << "暂无汽车过江！！" << endl;
+				if(mark == 1 && n != 0)
+				{
+					t2 = time(0) - t1;//计算到目前为止渡轮等待时间的秒数
+					cout << "轮渡未满，有车" << n << "辆，已等待" << t2/60 << "分";
+					cout << t2%60 << "秒，等候其他汽车上轮渡！" << endl; 
+				}
+				break;
+			}
+			if(mark != 1)
+			{
+				cout << "轮渡未到，请汽车稍后上渡轮！" << endl;
+			}
+			 break;	
+			 do{
+				i=0;
+				//首先上4辆客车
+				while(!EmptyQueue(q1) && n < 10 && i <4)
+				{
+					a[n++] = OutQueue(q1);
+					i++;
+				}
+				//满10辆开船，打印车辆号，重新对mark和n清0，转功能号表
+				if(n == 10)
+				{
+					Print(a,n);
+					mark = 0;
+					n = 0;
+					goto L1;
+				}
+				if(i == 4)
+				{
+					if(!EmptyQueue(q2))
+					{
+						a[n++] = OutQueue(q2);
+					}
+				}
+				else
+				{
+					while(!EmptyQueue(q2) && n < 10 && i < 5)
+					{
+						a[n++] = OutQueue(q2);
+						i++;
+					}
+				}
+				if(n == 10) 
+				{ 
+					Print(a,n);
+				    mark = 0;
+					n = 0; 
+					goto L1;
+				}
+			 }while(!EmptyQueue(q1) || !EmptyQueue(q2));
+			 //只要客车或货车队列不全为空，则继续执行do循环
+
+			 t2 = time(0) - t1;//登记轮渡已经等待时间的秒数
+			 cout << "轮渡上有车" << n << "辆，已等待" << t2/60 << "分" << t2%60;
+			 cout << "秒，等候其他汽车上轮渡！" << endl;
+			 break;
+	   case 4:
+		   if(n==0 || mark == 0)
+		   {
+			cout << "轮渡上无车过江或根本无渡轮！不需要起航！" << endl;
+		   }
+		   else
+		   {
+			Print(a,n);
+			mark = 0;
+			n = 0;
+		   }
+		   break;
+	   case 5:
+		   OutputQueue(q1,q2);
+		   break;
+	   case 6:
+		   if(!EmptyQueue(q1) || !EmptyQueue(q2))
+		   {
+			cout << "还有汽车为渡江，暂不能结束！" << endl;
+			break;
+		   }
+		   if(n != 0)
+		   {
+				cout << "渡轮上有车，不能结束，需命令开渡轮！" << endl;
+				break;
+			}
+		   cout << "程序运行结束！！" << endl;
+
+		   return;
+
+	   }//switch语句终端位置
+	   
+	}while(1);//外层do循环终端位置
+	ClearQueue(q1);
+	ClearQueue(q2);
+
+}
